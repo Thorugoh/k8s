@@ -167,3 +167,23 @@ NAME                         DESIRED   CURRENT   READY   AGE
 nginx-deployment-794547544   0         0         0       4m50s
 nginx-deployment-96b9d695    10        10        8       8m11s
 
+
+### Load Balancing (Services)
+
+- Kubernetes does not know about where to forward the request it only manages the number of pods running, to load balance between pods we need to use services.
+
+➜  k8s git:(main) ✗ kubectl apply -f service.yaml
+service/nginx-service created
+
+➜  k8s git:(main) ✗ kubectl get svc
+NAME            TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
+kubernetes      ClusterIP   10.96.0.1      <none>        443/TCP   70m
+nginx-service   ClusterIP   10.96.185.81   <none>        80/TCP    43s
+
+➜  k8s git:(main) ✗ kubectl port-forward svc/nginx-service 8080:80
+Forwarding from 127.0.0.1:8080 -> 80
+Forwarding from [::1]:8080 -> 80
+Handling connection for 8080
+
+- Every time we connect to localhost:8080, it will go to a different pod, it's using the default load balancing round-robin.
+- when calling the service we can hit the service name directly (nginx-service) since k8s will make name resolution automatically.
