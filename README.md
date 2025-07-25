@@ -71,3 +71,99 @@ Handling connection for 8080
 
 - Accessing localhost:8080 will give access to nginx on the pod
 
+### Adding Deployment
+- Deployment creates replica set based on a spec, if that spec changes, it creates a new replica set with the new config, and deletes the replica set with old configs.
+- Deployment will be responsible for deleting the old pods and creating new ones.
+
+- First we delete the old replica set
+
+➜  k8s git:(main) kubectl get rs
+NAME               DESIRED   CURRENT   READY   AGE
+nginx-replicaset   10        10        10      17m
+
+➜  k8s git:(main) ✗ kubectl delete rs nginx-replicaset
+replicaset.apps "nginx-replicaset" deleted
+
+➜  k8s git:(main) ✗ kubectl get pods
+No resources found in default namespace.
+
+- Lets apply deployment
+
+➜  k8s git:(main) ✗ kubectl apply -f deployment.yaml
+deployment.apps/nginx-deployment created
+
+➜  k8s git:(main) ✗ kubectl get deployment
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+nginx-deployment   10/10   10           10          25s
+
+➜  k8s git:(main) ✗ kubectl get rs
+NAME                        DESIRED   CURRENT   READY   AGE
+nginx-deployment-96b9d695   10        10        10      37s
+
+➜  k8s git:(main) ✗ kubectl get pods
+NAME                              READY   STATUS    RESTARTS   AGE
+nginx-deployment-96b9d695-242ns   1/1     Running   0          51s
+nginx-deployment-96b9d695-47jjv   1/1     Running   0          51s
+nginx-deployment-96b9d695-5wlpz   1/1     Running   0          51s
+nginx-deployment-96b9d695-6xgkj   1/1     Running   0          51s
+nginx-deployment-96b9d695-7xlf5   1/1     Running   0          51s
+nginx-deployment-96b9d695-h5gz5   1/1     Running   0          51s
+nginx-deployment-96b9d695-ktcdc   1/1     Running   0          51s
+nginx-deployment-96b9d695-mvwzx   1/1     Running   0          51s
+nginx-deployment-96b9d695-qx5hr   1/1     Running   0          51s
+nginx-deployment-96b9d695-r972f   1/1     Running   0          51s
+
+## Chaning image on deployment
+- Now if we change the image on deployment.yaml we will see that it is terminagint some pods and creating new ones with the new image, we will also have to replica sets created.
+
+➜  k8s git:(main) ✗ kubectl apply -f deployment.yaml
+deployment.apps/nginx-deployment configured
+
+k8s git:(main) ✗ kubectl get pods
+NAME                               READY   STATUS              RESTARTS   AGE
+nginx-deployment-794547544-2rtjw   0/1     ContainerCreating   0          9s
+nginx-deployment-794547544-dlmd2   0/1     ContainerCreating   0          9s
+nginx-deployment-794547544-fv96k   0/1     ContainerCreating   0          9s
+nginx-deployment-794547544-pd4ts   0/1     ContainerCreating   0          9s
+nginx-deployment-794547544-q8pvx   0/1     ContainerCreating   0          9s
+nginx-deployment-96b9d695-242ns    1/1     Running             0          3m30s
+nginx-deployment-96b9d695-47jjv    1/1     Running             0          3m30s
+nginx-deployment-96b9d695-5wlpz    1/1     Running             0          3m30s
+nginx-deployment-96b9d695-6xgkj    1/1     Running             0          3m30s
+nginx-deployment-96b9d695-7xlf5    1/1     Running             0          3m30s
+nginx-deployment-96b9d695-h5gz5    1/1     Running             0          3m30s
+nginx-deployment-96b9d695-ktcdc    1/1     Running             0          3m30s
+nginx-deployment-96b9d695-qx5hr    1/1     Running             0          3m30s
+
+➜  k8s git:(main) ✗ kubectl get rs
+NAME                         DESIRED   CURRENT   READY   AGE
+nginx-deployment-794547544   10        10        10      33s
+nginx-deployment-96b9d695    0         0         0       3m54s
+
+- If we revert the image it will "drain" the pods running from 1 rs to the old one
+
+➜  k8s git:(main) ✗ kubectl apply -f deployment.yaml
+deployment.apps/nginx-deployment configured
+
+➜  k8s git:(main) ✗ kubectl get pods
+NAME                               READY   STATUS              RESTARTS   AGE
+nginx-deployment-794547544-9ncw9   1/1     Running             0          4m28s
+nginx-deployment-794547544-dlmd2   1/1     Running             0          4m43s
+nginx-deployment-794547544-fv96k   1/1     Running             0          4m43s
+nginx-deployment-794547544-j2knm   1/1     Terminating         0          4m31s
+nginx-deployment-794547544-pd4ts   1/1     Running             0          4m43s
+nginx-deployment-794547544-ptmw8   1/1     Running             0          4m30s
+nginx-deployment-794547544-q8pvx   1/1     Running             0          4m43s
+nginx-deployment-96b9d695-6wzcz    0/1     ContainerCreating   0          3s
+nginx-deployment-96b9d695-b5l6v    1/1     Running             0          3s
+nginx-deployment-96b9d695-dfcws    1/1     Running             0          3s
+nginx-deployment-96b9d695-kjtgt    0/1     ContainerCreating   0          1s
+nginx-deployment-96b9d695-lm4tk    0/1     ContainerCreating   0          0s
+nginx-deployment-96b9d695-p6w6w    0/1     ContainerCreating   0          3s
+nginx-deployment-96b9d695-wc85z    0/1     ContainerCreating   0          3s
+
+➜  k8s git:(main) ✗ kubectl get rs                  
+NAME                         DESIRED   CURRENT   READY   AGE
+nginx-deployment-794547544   0         0         0       4m50s
+nginx-deployment-96b9d695    10        10        8       8m11s
+
