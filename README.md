@@ -61,3 +61,13 @@ nginx-replicaset-fzhw5   1/1     Running   0          41s
 nginx-replicaset-lm4jz   1/1     Running   0          41s
 nginx-replicaset-ppx6g   1/1     Running   0          41s
 nginx-replicaset-wgzd5   1/1     Running   0          41s
+
+- Forwards port 8080 from computer to port 80 of the pod
+
+➜  k8s git:(main) kubectl port-forward pod/nginx-replicaset-4qf88 8080:80
+Forwarding from 127.0.0.1:8080 -> 80
+Forwarding from [::1]:8080 -> 80
+Handling connection for 8080
+
+- Accessing localhost:8080 will give access to nginx on the pod
+
