@@ -187,3 +187,16 @@ Handling connection for 8080
 
 - Every time we connect to localhost:8080, it will go to a different pod, it's using the default load balancing round-robin.
 - when calling the service we can hit the service name directly (nginx-service) since k8s will make name resolution automatically.
+
+- How to make application run on internet? How to access appliation
+    - We change the type of the service from Service to LoadBalancer
+
+➜  k8s git:(main) ✗ kubectl apply -f service.yaml
+service/nginx-service configured
+
+➜  k8s git:(main) ✗ kubectl get svc
+NAME            TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+kubernetes      ClusterIP      10.96.0.1      <none>        443/TCP        84m
+nginx-service   LoadBalancer   10.96.185.81   <pending>     80:31868/TCP   14m
+
+- Since we are on a local machine an external ip wont be generated see: <pending> but once on amazon an external ip will be created and we can use it to access the service
